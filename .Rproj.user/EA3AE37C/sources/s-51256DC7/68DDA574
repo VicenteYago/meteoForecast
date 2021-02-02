@@ -1,0 +1,24 @@
+{
+    "id": "68DDA574",
+    "path": "~/Desktop/meteoForecast-PKG/meteoForecast/R/openWeather_API.R",
+    "project_path": "R/openWeather_API.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1612270719921.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "cursorPosition": "12,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1612292808,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1612292808244,
+    "read_only": false,
+    "read_only_alternatives": []
+}

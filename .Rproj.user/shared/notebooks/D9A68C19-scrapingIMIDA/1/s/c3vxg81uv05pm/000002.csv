@@ -1,0 +1,7 @@
+"0","```r
+if(F){
+##----------------------NO EJECUTAR ESTA SENTENCIA-----------------------##
+saveRDS(cultivosIMIDA,  paste(route.proc, \"cultivosIMIDA.rds\", sep=\"\"))
+saveRDS(KCs,  paste(route.proc, \"KCs.rds\", sep=\"\"))
+}
+```"

@@ -1,0 +1,7 @@
+"0","```r
+cultivosIMIDA %>% lapply(function(x){
+  x$curvaKC$DOY %>% max 
+}) %>% unlist %>% max -> max.DOY
+ref <- data.frame(DOY =  seq(1, max.DOY), Kc = 0)
+kcs.df.gif <- data.frame(DOY = ref$DOY)
+```"

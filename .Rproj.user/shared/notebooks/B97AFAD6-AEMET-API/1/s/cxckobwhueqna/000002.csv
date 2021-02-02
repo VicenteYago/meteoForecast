@@ -1,0 +1,16 @@
+"0","```r
+r <-GET(content$datos,
+      add_headers(content_type = \"application/json\"),
+      add_headers('api_key' = KEY))
+r$status_code
+```"
+"1","[1] 200
+"
+"0","```r
+content <- content(r)
+
+tmpfile <- tempfile(pattern = \"\", tmpdir = \"./tmp\", fileext = \".json\") # TODO
+content %>% write(file = tmpfile)
+aemet <- RJSONIO::fromJSON(tmpfile)
+unlink(tmpfile)
+```"

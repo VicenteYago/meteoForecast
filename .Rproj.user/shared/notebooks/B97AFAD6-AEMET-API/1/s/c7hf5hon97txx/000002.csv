@@ -1,0 +1,13 @@
+"0","```r
+codmun <- paste0(raw.route, \"20codmun03.xls\") %>% read_excel()
+```"
+"1","New names:
+* `` -> ...2
+* `` -> ...3
+* `` -> ...4
+"
+"0","```r
+codmun<-codmun[3:nrow(codmun),]
+names(codmun) <- c(\"CPRO\", \"CMUN\", \"DC\", \"NOMBRE\")
+codmun
+```"

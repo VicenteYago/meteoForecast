@@ -1,0 +1,56 @@
+#library(tidyverse)
+#library(sensorsUtils)
+#library(tidyverse)
+#library(plyr)
+#library(lubridate)
+#library(httr)
+#library(xml2)
+
+
+getSentekMulaAPI <- function(d1, d2){
+
+  # OBTENER TOKEN
+  TOKEN    <- NULL
+  BASE_DIR <- "http://agriculture-pruebas.odins.es/backend/login"
+  data <- list(login = "josevicente.yago@um.es",
+               password = "zsUFn3D41cx/oEqE4CXx4GQVbqTeubLlBak1t29OgWg=",
+               mobile = FALSE)
+
+  r<-POST(url = BASE_DIR, body = data, encode = "json")
+  r$status_code
+  content <- content(r)
+  TOKEN <- content$token
+
+  #RECUPERAR DATOS
+
+  var <- "5c9cee4b649ebd42fef61ba8"
+
+  paste0(
+    paste0(
+      paste0(
+        paste0("http://agriculture-pruebas.odins.es/backend/controller/5c9cee4b649ebd42fef61ba9/device/", var),
+        "/historical?from=%22",d1), "Z%22&to=%22", d2), "Z%22&type=%221%22") -> BASE_DIR
+
+
+  r <-GET(url = BASE_DIR,  encode = "json",  add_headers('x-access-token' = TOKEN))
+  r$status_code
+  content <- content(r)
+
+
+  sentek.levels.list <- list()
+  for (i in 1:6) {
+    cbind(content[[1]][[i]] %>% lapply("[[", "d") %>% unlist(),
+          content[[1]][[i]] %>% lapply("[[", "v") %>% unlist()) %>% as.data.frame() %>%
+      mutate(V1 = as.POSIXct(V1,format = "%Y-%m-%dT%H:%M:%S", tz = "UTC"),
+             V2 = as.numeric(levels(V2))[V2]) -> df
+
+    sentek.levels.list[[i]] <- df
+  }
+
+
+  cbind(sentek.levels.list[[1]]$V1,
+        data.frame(sentek.levels.list)[c(F,T)]) -> sentek.levels
+  colnames(sentek.levels) <- c("date", "N1","N2","N3","N4","N5","N6")
+
+  return(sentek.levels)
+}

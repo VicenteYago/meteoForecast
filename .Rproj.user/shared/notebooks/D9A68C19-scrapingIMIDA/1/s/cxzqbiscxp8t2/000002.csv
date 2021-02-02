@@ -1,0 +1,45 @@
+"0","```r
+for (i in 1:length(KCs)){
+  cultivosIMIDA[[i]]$KCs_estacion <- list()
+  for (j in 1:length(KCs[[i]])){
+    paste(sprintf(\"%d,%d\", i,j)) %>% print()
+    #print(KCs[[i]][[j]])
+    # Discriminar entre las tablas con \"Inicio\" en formato \"dd/mm\" y DOY
+    if (KCs[[i]][[j]]$Inicio[1] %>% str_detect(\"/\")){
+        KCs[[i]][[j]]$Inicio[1] %>% str_sub(0,2) %>% as.numeric() -> dia.ini
+        KCs[[i]][[j]]$Inicio[1] %>% str_sub(4,6) %>% as.numeric() -> mes.ini
+        start = (mes.ini-1)*30 + dia.ini
+    }else{
+        start = KCs[[i]][[j]]$Inicio[1] %>% as.numeric()
+    }
+
+    # Acoplamiento de los Kc's en un unico timeline
+    kcs<-c()
+    for(k in 1:nrow(KCs[[i]][[j]])){
+      kc   <- KCs[[i]][[j]]$Kc[k] %>% as.numeric()
+      
+#      if (KCs[[i]][[j]]$Dias[k][1] == \"-\"){
+#          KCs[[i]][[j]] = KCs[[i]][[j-1]]
+#      }
+      
+      Dias <- KCs[[i]][[j]]$Dias[k] %>% as.numeric()
+      if(Dias <= 0){
+        paste(sprintf(\"!!!!! DIAS<=0.  KCs[[%d]][[%d]]$Dias[%d]:\", i, j, k)) %>% print()
+        Dias <- abs(as.numeric(Dias))
+      }
+    
+      else if (Dias >= 150){
+        paste(sprintf(\"!!!!! DIAS>=200. KCs[[%d]][[%d]]$Dias[%d]:\", i, j, k)) %>% print()
+      }
+      
+      kcs<-c(kcs, rep(kc, Dias))
+    }
+    kcs_index <- seq(start, length.out = length(kcs))
+    
+    #Formateado a dataframe
+    mapperID <- mapper[match(cultivosIMIDA[[i]]$estaciones[j], mapper$ID), \"N\"]
+    cultivosIMIDA[[i]]$KCs_estacion[[mapperID]] =  data.frame(DOY = kcs_index %>% as.numeric(),
+                                                  Kc  = kcs %>% as.numeric())
+  }
+}
+```"

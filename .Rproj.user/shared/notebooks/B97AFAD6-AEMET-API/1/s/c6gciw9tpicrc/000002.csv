@@ -1,0 +1,25 @@
+"0","```r
+DIR <- paste0(\"https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/\", codigo)
+r<-GET(DIR,
+      add_headers(content_type = \"application/json\"),
+      add_headers('api_key' = KEY))
+r$status_code
+```"
+"1","[1] 200
+"
+"0","```r
+content <- content(r)
+content
+```"
+"1","$descripcion
+[1] \"exito\"
+
+$estado
+[1] 200
+
+$datos
+[1] \"https://opendata.aemet.es/opendata/sh/f580f78d\"
+
+$metadatos
+[1] \"https://opendata.aemet.es/opendata/sh/93a7c63d\"
+"

@@ -1,0 +1,4 @@
+"0","```r
+if(F){KCs.originales <- KCs}
+if(F){KCs<-KCs.originales}
+```"

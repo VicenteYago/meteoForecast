@@ -1,0 +1,11 @@
+"0","```r
+df.glob <- data.frame()
+for (i in 1:length(aemet[[1]]$prediccion$dia)){
+  aemet[[1]]$prediccion$dia[[i]]$fecha %>% as.POSIXct() -> d1
+  data.frame(
+    hour  = d1 + hours(aemet[[1]]$prediccion$dia[[i]]$temperatura %>% lapply(\"[[\", \"periodo\") %>% unlist() %>% as.numeric()),
+    value = aemet[[1]]$prediccion$dia[[i]]$temperatura %>% lapply(\"[[\", \"value\") %>% unlist() %>% as.numeric()
+  ) -> df
+  df.glob <- rbind(df.glob,df)
+}
+```"

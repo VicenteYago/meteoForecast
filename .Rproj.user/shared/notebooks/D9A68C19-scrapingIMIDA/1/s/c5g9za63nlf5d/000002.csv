@@ -1,0 +1,4 @@
+"0","```r
+cultivosIMIDA <- paste(route.proc, \"cultivosIMIDA.rds\", sep=\"\") %>%  readRDS()
+KCs <- paste(route.proc, \"KCs.rds\", sep=\"\") %>%  readRDS()
+```"

@@ -1,0 +1,580 @@
+---
+title: "Scraping al IMIDA"
+author: Jose Vicente Yago Martinez
+output: html_notebook
+---
+
+```{r setup}
+knitr::opts_knit$set(root.dir = '~/Desktop/WatermedR/')
+```
+
+En este documento se describe como se han obtenido los coeficientes $K_c$ de la web del IMIDA 
+a traves de una técnica llamada _scraping_. Básicamente se analiza el codigo fuente .html de la web y se van extrayendo los componentes necesarios para atacar a la base de datos del IMIDA, construyendose URLs artificiales que permiten el acceso sistematico a las tablas de $K_c$ para cada uno de los cultivos analizados por el IMIDA. Finalmente una vez que se obtiene las tablas en .html, se parsean y se transforman a dataframes de R.
+
+Al finalizar este proceso se agregaron todas las curvas Kc en una animación en la que se muestra como evoluciona este coeficiente para cada uno de los *44 cultivos*. El gif resultante puede verse al final de este documento.
+
+Si tenemos en cuenta que cada uno de los 44 cultivos tiene asociados KCs en cada una de las regiones (estaciones) en total hay *1422 curvas KCs*.
+
+
+44
+En total se ha recopilado información de *51 estaciones metereologicas* a lo largo de toda la región de Murcia.
+
+* Webs:
+  - IMIDA (KCs) ->        http://siam.imida.es/apex/f?p=101:39:3731290676798366
+  - IMIDA (Estaciones) -> http://siam.imida.es/apex/f?p=101:41:3731290676798366
+
+  - rvest -> http://rvest.tidyverse.org
+  - rselenium -> https://ropensci.org/tutorials/rselenium_tutorial/
+  - wdman -> https://cran.r-project.org/web/packages/wdman/vignettes/basics.html
+  - regex -> https://stringr.tidyverse.org/articles/regular-expressions.html
+  - gganimate -> https://gganimate.com
+  - rleaflet -> https://rstudio.github.io/leaflet/
+  
+  - https://gisgeography.com/latitude-longitude-coordinates/
+  - https://andrew.hedges.name/experiments/convert_lat_long/
+
+
+```{r} 
+library(rvest)     # Scraping
+library(RSelenium) # Scraping
+library(stringr)   # Manejo de strings
+library(tidyverse) # Proposito general
+library(gganimate) # Animaciones
+library(leaflet)   # Mapas
+library(wdman)
+# Ruta para almacenar los resultados
+route.proc <- "./proc_data/"
+```
+
+
+# RSelenium set up
+
+https://ropensci.github.io/wdman/
+
+wdman (Webdriver Manager) is an R package that allows the user to manage the downloading/running of third party binaries relating to the webdriver/selenium projects. The package was inspired by a similar node package webdriver-manager.
+
+```{r}
+#STOP SERVER
+selServ$stop()
+
+#START SERVER
+selServ <- selenium(verbose = T)
+```
+
+
+```{r}
+selServ$error()
+selServ$log()
+selServ$process
+```
+
+```{r}
+selServ$log()
+```
+
+
+
+## Chrome driver
+```{r}
+cDrv$stop()
+# Para que me funcionase en el MAC
+#binman::list_versions("chromedriver") 
+#cDrv <- chrome(verbose = TRUE ,version = "78.0.3904.105")
+
+# Lo ejecuté en Ubuntu 18.04
+cDrv <- chrome(verbose = TRUE)
+
+```
+
+```{r}
+cDrv$process
+```
+
+
+
+
+## Connect to a running server
+
+https://docs.ropensci.org/RSelenium/articles/docker.html#introduction-1
+
+SIN VNC
+sudo docker run -d -p 4445:4444 selenium/standalone-firefox
+
+CON VNC
+sudo docker run -d -p 4445:4444 -p 5901:5900 selenium/standalone-firefox-debug
+
+
+Lanzar desde aqui directamente si se usa docker.
+
+```{r}
+require(RSelenium)
+remDr <- remoteDriver(remoteServerAddr = "localhost",
+                      port = 4445L)
+
+remDr$open()
+remDr$errorDetails()
+```
+
+
+
+
+# SCRAPING KCs
+
+```{r}
+url <- "http://siam.imida.es/apex/f?p=101:39:5267927739015372::NO::P39_MOSTRAR_DATOS:0"
+web <- read_html(url, as.data.frame=T, stringsAsFactors = TRUE)
+```
+
+## Nombres de los cultivos y suelos
+```{r}
+web %>% 
+  html_nodes("option") %>% html_text %>% .[2:length(.)] -> texts
+
+CULTIVOS.n<-texts[1:43]
+SUELOS.n<-texts[46:51]
+```
+
+Los diferentes tipos de suelos no se han utilizado para nada.
+
+
+## IDs de cultivos y variedades
+
+A traves de diferentes nodos HTML y XML se llegan a los IDs de cultivo y variedad. Este codigo es totalmente
+de la arquitectura de la pagina web.
+
+```{r}
+web %>% 
+  html_nodes("#P39_CULTIVO_VARIEDAD") %>% .[[1]] %>% html_nodes("option") %>%
+  xml_cdata %>% tail(length(.)-1) %>% lapply(function(x){
+    return(xml_attr(x, "value") %>% as.character() )}) %>% unlist() -> option_values
+
+option_values %>% lapply(function(x){
+  return(
+          list(
+              cultivo  = str_sub(x, -9, -5),
+              variedad = str_sub(x, -3, -1)
+              )
+         )
+}) -> cultivos_variedad
+
+
+cultivosIMIDA <-setNames(cultivos_variedad, CULTIVOS.n)
+```
+
+## Estaciones asociadas al cultivo
+
+```{r}
+i <- 1
+for (option_value in option_values){
+  remDr$navigate(url)
+  webElem<-remDr$findElement(using = "css selector", "#P39_CULTIVO_VARIEDAD")
+  webElem$highlightElement()
+  res <- remDr$findElement(using = 'xpath',
+                           value = sprintf("//*/option[@value = '%s']", option_value) )
+  res$clickElement()
+  
+  cultivosIMIDA[[i]]$estaciones.nombre <- remDr$getPageSource() %>% .[[1]] %>% 
+                                          read_html(as.data.frame=T, stringsAsFactors = TRUE) %>%
+                                          html_node("#P39_ESTACION") %>% html_children() %>% 
+                                          xml_text() %>% .[2:length(.)]
+  cultivosIMIDA[[i]]$estaciones <- str_sub(cultivosIMIDA[[i]]$estaciones.nombre, 0, 4)
+  print(cultivosIMIDA[[i]]$cultivo)
+  print(cultivosIMIDA[[i]]$estaciones)
+  i <- i+1
+  
+  Sys.sleep(runif(1,min=2,max=5))
+}
+
+```
+
+
+## Creación URLs y recolección
+En esta sección se va a crear una lista con toda la información para hacer las consultas a la web del IMIDA y conseguir todos los KCs.
+
+
+
+La lista *cultivosIMIDA* tiene actualmente
+  - cultivo : ID del cultivo utilizado por la web del IMIDA
+  - variedad: ID de la variaedad utilizado por la web del IMIDA
+  - estaciones: IDs en las que se puede seleccionar el cultivo en la web del IMIDA
+para cada uno de los 43 cultivos disponibles.
+
+
+Se ensamblan los IDs de cultivo, variedad y estación a la plantilla de la URL y a continuación se 
+realiza la consulta obteniendo directamente la tabla asociada a la combinación que se "scrapea" y se mete en la lista KCs.
+
+
+```{r}
+if(T){
+  
+  KCs <- list()
+  for(i in 1:length(cultivosIMIDA)){
+    KCs[[i]] <- list()
+    cultivosIMIDA[[i]]$URLs <- list()
+    CULTIVO  = cultivosIMIDA[[i]]$cultivo
+    VARIEDAD = cultivosIMIDA[[i]]$variedad
+    
+    for (j in 1:length(cultivosIMIDA[[i]]$estaciones)){
+          ESTACION = cultivosIMIDA[[i]]$estaciones[j]
+
+          # build URL
+          paste(
+            paste(
+              paste("http://siam.imida.es/apex/f?p=101:333:5267927739015372::::CULTIVO,VARIEDAD,ESTACION:",
+              CULTIVO, sep=""),
+            VARIEDAD, sep=","),
+          ESTACION,sep=",") -> url
+          print(url)
+          # insert each url (one for each station) at the list of URLs of each crop
+          cultivosIMIDA[[i]]$URLs[j] = url
+          
+          # scrap Kc table with the constructed URL
+          url %>% read_html(as.data.frame=T, stringsAsFactors = F) %>% 
+           html_node("tr td") %>% 
+              html_nodes("table") %>% .[[5]] %>%
+                html_table(fill = T)-> KCs[[i]][[j]]
+     #Sys.sleep(runif(1,min=1,max=1)) # max = 3
+    }
+  }
+  #Sys.sleep(runif(1,min=1,max=3))
+
+}
+```
+
+Despues de ejecutar este codigo el item "URLs" se ha añadido a cada tipo de cultivo. El iem consiste en una lista de URls, con cada URL se puede
+
+
+
+
+## Creación de las curvas de cultivo.
+
+A partir de los dataframes en crudo, se ensambla cada curva Kc a sus cultivo correspondiente. El formato temporal elegido es el DOY, dado que es mas facil pasar de fechas en formato "dd/mm" a DOY que viceversa.
+
+Creación de un mapper entre ID y nombres de estaciones. Es como un mapa en el que la clave son las "ID" de las estaciones y el valor son los
+nombres de las mismas.
+```{r}
+# Añadir nombre de cultivo y estaciones a cada cultivo, actualmente solo se presentan los IDs
+all <- c()
+for(i in 1:length(cultivosIMIDA)){
+  all <- c(all, cultivosIMIDA[[i]]$estaciones.nombre)
+}
+
+data.frame(
+  ID = unique(all) %>% str_sub(1,4) %>% as.character(),
+  N = unique(all) %>% str_sub(8,length(.)) %>% as.character(),
+  stringsAsFactors = F) -> mapper
+```
+
+TRUCO
+```{r}
+if(F){KCs.originales <- KCs}
+if(F){KCs<-KCs.originales}
+```
+
+
+
+```{r}
+for (i in 1:length(KCs)){
+  cultivosIMIDA[[i]]$KCs_estacion <- list()
+  for (j in 1:length(KCs[[i]])){
+    paste(sprintf("%d,%d", i,j)) %>% print()
+    #print(KCs[[i]][[j]])
+    # Discriminar entre las tablas con "Inicio" en formato "dd/mm" y DOY
+    if (KCs[[i]][[j]]$Inicio[1] %>% str_detect("/")){
+        KCs[[i]][[j]]$Inicio[1] %>% str_sub(0,2) %>% as.numeric() -> dia.ini
+        KCs[[i]][[j]]$Inicio[1] %>% str_sub(4,6) %>% as.numeric() -> mes.ini
+        start = (mes.ini-1)*30 + dia.ini
+    }else{
+        start = KCs[[i]][[j]]$Inicio[1] %>% as.numeric()
+    }
+
+    # Acoplamiento de los Kc's en un unico timeline
+    kcs<-c()
+    for(k in 1:nrow(KCs[[i]][[j]])){
+      kc   <- KCs[[i]][[j]]$Kc[k] %>% as.numeric()
+      
+#      if (KCs[[i]][[j]]$Dias[k][1] == "-"){
+#          KCs[[i]][[j]] = KCs[[i]][[j-1]]
+#      }
+      
+      Dias <- KCs[[i]][[j]]$Dias[k] %>% as.numeric()
+      if(Dias <= 0){
+        paste(sprintf("!!!!! DIAS<=0.  KCs[[%d]][[%d]]$Dias[%d]:", i, j, k)) %>% print()
+        Dias <- abs(as.numeric(Dias))
+      }
+    
+      else if (Dias >= 150){
+        paste(sprintf("!!!!! DIAS>=200. KCs[[%d]][[%d]]$Dias[%d]:", i, j, k)) %>% print()
+      }
+      
+      kcs<-c(kcs, rep(kc, Dias))
+    }
+    kcs_index <- seq(start, length.out = length(kcs))
+    
+    #Formateado a dataframe
+    mapperID <- mapper[match(cultivosIMIDA[[i]]$estaciones[j], mapper$ID), "N"]
+    cultivosIMIDA[[i]]$KCs_estacion[[mapperID]] =  data.frame(DOY = kcs_index %>% as.numeric(),
+                                                  Kc  = kcs %>% as.numeric())
+  }
+}
+```
+
+
+## Guardar resultados
+```{r}
+if(F){
+##----------------------NO EJECUTAR ESTA SENTENCIA-----------------------##
+saveRDS(cultivosIMIDA,  paste(route.proc, "cultivosIMIDA.rds", sep=""))
+saveRDS(KCs,  paste(route.proc, "KCs.rds", sep=""))
+}
+```
+
+Aqui se indica como cargarlos:
+```{r}
+cultivosIMIDA <- paste(route.proc, "cultivosIMIDA.rds", sep="") %>%  readRDS()
+KCs <- paste(route.proc, "KCs.rds", sep="") %>%  readRDS()
+```
+
+
+## Visualización
+
+### Graficos
+Aquí se pueden ver todas las curvas, una por una.
+```{r}
+cultivosIMIDA %>% lapply(function(x){
+  plot(x$KCs_estacion[[1]], type = "l", main = x$cultivo.nombre)
+})
+```
+
+
+### Animación
+
+Para que todas las curvas de la animación sean consistentes deben tener un eje X común. Actualmente dado que hay cultivos que empiezan a principio de años y otros no, esta referencia temporal difiere parcialmente en algunas tablas.
+
+Se construye un eje X comun que abarca hasta la tabla de mayor longitud. Sera el eje temporal del del megadataframe.
+```{r}
+cultivosIMIDA %>% lapply(function(x){
+  x$curvaKC$DOY %>% max 
+}) %>% unlist %>% max -> max.DOY
+ref <- data.frame(DOY =  seq(1, max.DOY), Kc = 0)
+kcs.df.gif <- data.frame(DOY = ref$DOY)
+```
+
+A continuación se añaden las columnas al dataframe, cada columna es únicamente un vector de valores Kc que esta sincronizado con el eje temporal definido anteriormente.
+```{r}
+
+for(i in 1:length(cultivosIMIDA)){
+  standarized<-merge(cultivosIMIDA[[i]]$curvaKC, ref, by = "DOY", all.y = T)[,c(1,2)]
+  standarized[is.na(standarized$Kc.x), "Kc.x"] <- 0
+  kcs.df.gif[,i+1]<-standarized$Kc.x
+}
+
+colnames(kcs.df.gif) <-c("DOY",CULTIVOS.n)
+```
+
+Un megadataframe de 44 columnas es construido, una por cada cultivo.
+```{r}
+head(kcs.df.gif)
+```
+
+
+La primera linea es fundamental, colpasa/funde el gran dataframe en un dataframe "a lo largo", permitiendo operar a la 
+libreria gganimate que en ultima instancia es la que va a crear el gif.
+
+```{r}
+kcs.df.gif %>% gather(col, val, -DOY) %>% 
+
+  ggplot(aes(x=DOY, y = val, group = col, col = col)) +
+  geom_line(size = 2) +
+  transition_states(col, transition_length = 3, state_length = 1) +
+  ease_aes('linear')+
+  shadow_mark(colour = "grey70") + 
+  labs(title = '{next_state}') + 
+  theme_bw()+
+  theme(legend.position = "none",
+        plot.title = element_text(size=22))+
+  labs(y = "Kc") -> my.animation
+
+animate(my.animation, height=1000, width=1000, fps = 1)
+anim_save("KCsIMIDA.gif")
+```
+
+
+
+
+
+
+# SCRAPING ESTACIONES
+
+## IDs de estaciones
+
+Leer IDs de las estaciones:
+```{r}
+
+read_html("http://siam.imida.es/apex/f?p=101:1000:3404172010822813::NO:::",
+          as.data.frame=T, stringsAsFactors = TRUE) %>% 
+            html_nodes("option") %>% xml_text() %>% tail(length(.)-1) %>% str_sub(1,4) -> IDs
+```
+
+
+
+## Funciones para latitud y longitud
+```{r}
+get_Lat.IMIDA<-function(data){
+  data  %>% 
+  str_match("Lat:..º ..?' .* Lon") %>% str_sub(end = -7) %>% 
+  str_sub(start = 5) %>% str_split("\\n+ ?") %>% 
+  lapply(function(x){str_split(x, "(º )|(' )")}) %>% 
+  lapply(unlist) -> latitud.split
+
+cbind(latitud.split %>% lapply("[",c(1)) %>% unlist %>% as.numeric(),
+      latitud.split %>% lapply("[",c(2)) %>% unlist %>% as.numeric(),
+      latitud.split %>% lapply("[",c(3)) %>% unlist %>% str_replace(",", ".") %>% as.numeric()) %>% 
+  apply(function(x){
+    x[1]+(((x[2]*60)+(x[3]))/3600)
+  }, MARGIN =  1)
+}
+
+
+get_Lng.IMIDA<-function(data){
+  data %>% 
+  str_match("Lon:.*") %>% str_sub(start = 5, end = -2) %>%
+  str_split("\\n+ ?") %>% 
+  lapply(function(x){str_split(x, "(º )|(' )")}) %>% 
+  lapply(unlist) %>% 
+  lapply(function(x){
+    str_replace(x, pattern="(^,)",replacement = "0,")})  -> longitud.split
+
+cbind(longitud.split %>% lapply("[",c(1)) %>% unlist %>% as.numeric(),
+      longitud.split %>% lapply("[",c(2)) %>% unlist %>% as.numeric(),
+      longitud.split %>% lapply("[",c(3)) %>% unlist %>% str_replace(",", ".") %>% as.numeric()) %>% 
+  apply(function(x){
+    x[1]+(((x[2]*60)+(x[3]))/3600)
+  }, MARGIN =  1)
+}
+```
+
+## Recolección 
+```{r}
+remDr$navigate("http://siam.imida.es/apex/f?p=101:1000:1172181511669595::NO")
+webElem<-remDr$findElement(using = "class", "formulario_text")
+
+estaciones.info <- data.frame(matrix(ncol = 6, nrow = 0))
+colnames(estaciones.info) <- c("ID", "Nombre", "Finca",
+                              "LatLong", "Altitud", "FechaAlta")
+for (ID in IDs){
+  
+  webElem<-remDr$findElement(using = "class", "formulario_text")
+  webElem$highlightElement()
+  res <- remDr$findElement(using = 'xpath',
+                           value = sprintf("//*/option[@value = '%s']",ID))
+  res$clickElement()
+  remDr$getPageSource() %>% .[[1]] %>% 
+    read_html(url, as.data.frame=T, stringsAsFactors = TRUE) %>%
+    html_nodes(".L+ td") %>% xml_text() -> data.raw
+  print("-------------------------------------------------------------------")
+  print(data.raw)
+  estaciones.info <- rbind(estaciones.info,
+                           data.frame(ID = ID,
+                                      Nombre  = data.raw[1],
+                                      Finca   = data.raw[2],
+                                      Lat  = data.raw[3] %>% get_Lat.IMIDA(),
+                                      Long = -(data.raw[3] %>% get_Lng.IMIDA()),
+                                      Altitud = data.raw[5] %>% str_match(".* ") %>%
+                                                  str_sub(end = -2) %>% as.numeric(),
+                                      FechaAlta = data.raw[6],
+                                      stringsAsFactors = F))
+    
+  Sys.sleep(runif(1,min=2,max=5))
+}
+```
+
+
+## Guardar resultados
+
+```{r}
+if(F){
+##----------------------NUNCA EJECUTAR ESTA SENTENCIA-----------------------##
+saveRDS(estaciones.info,  paste(route.proc, "estaciones.info.rds", sep=""))
+}
+```
+
+Aqui se indica como cargarlos:
+```{r}
+estaciones.info <- paste(route.proc, "estaciones.info.rds", sep="") %>%  readRDS()
+```
+
+
+## Visualización
+
+```{r}
+library(leaflet)
+m = leaflet(estaciones.info) %>%  addProviderTiles(providers$Esri.WorldImagery)
+m %>% addMarkers(popup = ~as.character(Altitud), label = ~ Nombre)
+```
+
+
+
+
+# Actualización 06/04/2020
+
+Arreglo las estructurad de datos de la siguiente forma: 
+
+
+ARREGLANDO cIMIDA [OK]
+
+> indexar el campo KCs_estacion por ID de estacion
+
+```{r}
+for (i in 1:length(cultivosIMIDA)){
+  cultivosIMIDA[[i]] -> crop
+  names(crop$KCs_estacion) <- crop$estaciones
+  cultivosIMIDA[[i]] <- crop
+}
+```
+
+ARREGLANDO KCs [OK]
+> indexar tablas kc por nombre de cultivo en vez de por simple numero
+
+```{r}
+names(KCs) <- names(cultivosIMIDA)
+```
+
+
+> indexar tablas kc dentro de cada cultivo por idestaciom
+
+```{r}
+for (i in 1:length(KCs)) {
+  names(KCs[[i]]) <- names(cultivosIMIDA[[i]]$KCs_estacion)
+}
+```
+
+
+# Actualizacion 10/04/2020
+
+Lat JU12 real:
+```{r}
+ estaciones[estaciones$ID == "JU12", c("Lat")] <- 38+(((23*60)+(41.4))/3600)
+```
+
+Long JU12 real:
+```{r}
+ estaciones[estaciones$ID == "JU12", c("Long")] <- -(1+(((25*60)+(23.82))/3600))
+```
+
+
+```{r}
+if(F){
+##----------------------NO EJECUTAR ESTA SENTENCIA-----------------------##
+saveRDS(cIMIDA,  paste(route.proc, "cultivosIMIDA.rds", sep=""))
+saveRDS(KCs,  paste(route.proc, "KCs.rds", sep=""))
+saveRDS(estaciones,  paste(route.proc, "estaciones.info.rds", sep=""))
+}
+```
+
+
+
+
+
+
+

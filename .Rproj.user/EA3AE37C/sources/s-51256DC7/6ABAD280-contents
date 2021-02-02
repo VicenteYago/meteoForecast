@@ -1,0 +1,41 @@
+key.openWeather <- "eed0d74db8ec47674d4ab0286e832f9b"
+
+openWeatherJSONtodf <- function(content.JSON, variable) {
+  data.frame(date  = lapply(content.JSON$hourly, "[[", "dt") %>% unlist() %>% as.POSIXct(origin  = "1970-01-01"),
+             value = lapply(content.JSON$hourly, "[[", variable) %>% unlist()) -> res
+
+  if (variable == "temp" || variable == "dew_point" ) {
+    res[,2] <- res[,2] - 273.15
+  }
+  return(res)
+}
+
+#' @export
+getPrediccionOpenWeather <- function(lat, long, KEY = key.openWeather){
+
+  paste0(
+    paste0(
+      paste0("lat=", toString(lat)), "&lon="), toString(long)) -> coords
+s
+  paste0(
+    paste0(
+      paste0("https://api.openweathermap.org/data/2.5/onecall?", coords),
+      "&exclude=current,minutely,daily&appid="), KEY) -> DIR
+
+  r<-httr::GET(DIR,
+         httr::add_headers(content_type = "application/json"),
+         httr::add_headers('api_key' = KEY))
+  r$status_code
+  content <- httr::content(r)
+
+  temp <- openWeatherJSONtodf(content, "temp")
+  HR   <- openWeatherJSONtodf(content, "humidity")
+  prec <- ifelse(is.null(content$hourly[[1]]$rain),NA, openWeatherJSONtodf(content, "rain")) # rain its not always provided
+  viento <- openWeatherJSONtodf(content, "wind_speed")
+
+  data.frame(date = temp[,1],
+             temp = temp[,2],
+             HR   = HR[,2],
+             prec = prec,
+             viento = viento[,2])
+}

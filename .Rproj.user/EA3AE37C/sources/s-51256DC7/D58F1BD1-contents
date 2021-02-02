@@ -1,0 +1,131 @@
+---
+title: "Comportamientos extraños en la estación de Mula."
+output: html_notebook
+---
+
+```{r setup, message=FALSE, include=FALSE}
+knitr::opts_chunk$set(echo=T)
+knitr::opts_chunk$set(fig.align='center')
+knitr::opts_knit$set(root.dir = '~/Desktop/WatermedR/')
+```
+
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+library(tidyverse)
+library(plotly)
+library(tidyverse)
+library(ggplot2)
+library(forecast)
+```
+
+Aqui cargo directamente funciones que se pelean con APIS y hacen calculos compejos :
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+source("./localLibs/utils.R")
+source("./et0/et0.R")
+source("./notebooks/custom_libs/estaciones_watermed_API.R")
+```
+
+
+
+https://openweathermap.org/
+https://openweathermap.org/api/one-call-api
+
+```{r}
+KEY <- "eed0d74db8ec47674d4ab0286e832f9b"
+
+lat  <- "37.9929600" 
+long <- "-1.5366100"
+
+paste0(
+  paste0(
+    paste0("lat=",lat), "&lon="), long) -> coords
+
+paste0(
+  paste0(
+    paste0("https://api.openweathermap.org/data/2.5/onecall?", coords),
+      "&exclude=current,minutely,daily&appid="), KEY) -> DIR 
+
+r<-GET(DIR,
+      add_headers(content_type = "application/json"),
+      add_headers('api_key' = KEY))
+r$status_code
+content <- content(r)
+#content
+```
+
+
+
+```{r}
+
+openWeatherJSONtodf <- function(content.JSON, variable) {
+  data.frame(date  = lapply(content.JSON$hourly, "[[", "dt") %>% unlist() %>% as.POSIXct(origin  = "1970-01-01"),
+              value = lapply(content.JSON$hourly, "[[", variable) %>% unlist()) -> res
+    
+  if (variable == "temp" || variable == "dew_point" ) {
+    res[,2] <- res[,2] - 273.15
+  }
+  return(res)
+}
+
+getPrediccionOpenWeather <- function(lat, long, KEY){
+
+  paste0(
+    paste0(
+      paste0("lat=", toString(lat)), "&lon="), toString(long)) -> coords
+  
+  paste0(
+    paste0(
+      paste0("https://api.openweathermap.org/data/2.5/onecall?", coords),
+        "&exclude=current,minutely,daily&appid="), KEY) -> DIR 
+  
+  r<-GET(DIR,
+        add_headers(content_type = "application/json"),
+        add_headers('api_key' = KEY))
+  r$status_code
+  content <- content(r)
+  
+  temp <- openWeatherJSONtodf(content, "temp")
+  HR   <- openWeatherJSONtodf(content, "humidity")
+  prec <- NA
+  viento <- openWeatherJSONtodf(content, "wind_speed")
+  
+  data.frame(date = temp[,1],
+             temp = temp[,2],
+             HR   = HR[,2],
+             prec = prec,
+             viento = viento[,2])
+}
+
+
+
+```
+
+
+
+```{r}
+source("./notebooks/custom_libs/openWeather_API.R")
+lat  <- 37.9929600 
+long <- -1.5366100
+
+res <-getPrediccionOpenWeather(lat, long)
+res
+```
+
+
+```{r}
+ggplot(res, aes(x = date)) + 
+  geom_line(aes(y = temp))+ggtitle("Prediccion temperatura 48 h AEMET") + labs( y = "ºC")
+
+ggplot(res, aes(x = date)) + 
+  geom_line(aes(y = HR))+ggtitle("Prediccion humedad relativa 48 h AEMET")+ labs( y = "%")
+
+ggplot(res, aes(x = date)) + 
+  geom_line(aes(y = prec))+ggtitle("Prediccion precipitacion 48 h AEMET") + labs( y = "mm")
+
+ggplot(res, aes(x = date)) + 
+  geom_line(aes(y = viento)) +ggtitle("Prediccion viento 48 h AEMET")+ labs( y = "m*s^-1")
+```
+
+
+

@@ -1,0 +1,7 @@
+"0","```r
+for (i in 1:length(cultivosIMIDA)){
+  cultivosIMIDA[[i]] -> crop
+  names(crop$KCs_estacion) <- crop$estaciones
+  cultivosIMIDA[[i]] <- crop
+}
+```"

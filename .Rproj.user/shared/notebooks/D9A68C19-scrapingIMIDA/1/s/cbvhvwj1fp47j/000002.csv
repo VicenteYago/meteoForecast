@@ -1,0 +1,10 @@
+"0","```r
+cDrv$stop()
+# Para que me funcionase en el MAC
+#binman::list_versions(\"chromedriver\") 
+#cDrv <- chrome(verbose = TRUE ,version = \"78.0.3904.105\")
+
+# Lo ejecuté en Ubuntu 18.04
+cDrv <- chrome(verbose = TRUE)
+
+```"

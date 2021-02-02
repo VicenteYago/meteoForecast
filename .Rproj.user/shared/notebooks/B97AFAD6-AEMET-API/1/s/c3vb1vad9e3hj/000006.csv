@@ -1,0 +1,5 @@
+"0","```r
+
+ggplot(res, aes(x = date)) + 
+  geom_line(aes(y = prec))+ggtitle(\"Prediccion precipitacion 48 h AEMET\") + labs( y = \"mm\")
+```"

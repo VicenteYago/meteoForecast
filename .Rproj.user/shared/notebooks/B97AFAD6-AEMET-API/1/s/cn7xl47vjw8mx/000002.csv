@@ -1,0 +1,7 @@
+"0","```r
+aemet[[1]]$prediccion$dia[[1]] %>% names()
+```"
+"1"," [1] \"estadoCielo\"       \"precipitacion\"     \"probPrecipitacion\" \"probTormenta\"      \"nieve\"             \"probNieve\"        
+ [7] \"temperatura\"       \"sensTermica\"       \"humedadRelativa\"   \"vientoAndRachaMax\" \"fecha\"             \"orto\"             
+[13] \"ocaso\"            
+"

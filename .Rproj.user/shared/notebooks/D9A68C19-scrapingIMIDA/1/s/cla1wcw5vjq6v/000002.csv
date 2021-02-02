@@ -1,0 +1,5 @@
+"0","```r
+cultivosIMIDA %>% lapply(function(x){
+  plot(x$KCs_estacion[[1]], type = \"l\", main = x$cultivo.nombre)
+})
+```"

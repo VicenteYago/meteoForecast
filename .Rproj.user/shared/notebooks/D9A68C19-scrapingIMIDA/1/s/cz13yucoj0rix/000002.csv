@@ -1,0 +1,34 @@
+"0","```r
+get_Lat.IMIDA<-function(data){
+  data  %>% 
+  str_match(\"Lat:..º ..?' .* Lon\") %>% str_sub(end = -7) %>% 
+  str_sub(start = 5) %>% str_split(\"\\n+ ?\") %>% 
+  lapply(function(x){str_split(x, \"(º )|(' )\")}) %>% 
+  lapply(unlist) -> latitud.split
+
+cbind(latitud.split %>% lapply(\"[\",c(1)) %>% unlist %>% as.numeric(),
+      latitud.split %>% lapply(\"[\",c(2)) %>% unlist %>% as.numeric(),
+      latitud.split %>% lapply(\"[\",c(3)) %>% unlist %>% str_replace(\",\", \".\") %>% as.numeric()) %>% 
+  apply(function(x){
+    x[1]+(((x[2]*60)+(x[3]))/3600)
+  }, MARGIN =  1)
+}
+
+
+get_Lng.IMIDA<-function(data){
+  data %>% 
+  str_match(\"Lon:.*\") %>% str_sub(start = 5, end = -2) %>%
+  str_split(\"\\n+ ?\") %>% 
+  lapply(function(x){str_split(x, \"(º )|(' )\")}) %>% 
+  lapply(unlist) %>% 
+  lapply(function(x){
+    str_replace(x, pattern=\"(^,)\",replacement = \"0,\")})  -> longitud.split
+
+cbind(longitud.split %>% lapply(\"[\",c(1)) %>% unlist %>% as.numeric(),
+      longitud.split %>% lapply(\"[\",c(2)) %>% unlist %>% as.numeric(),
+      longitud.split %>% lapply(\"[\",c(3)) %>% unlist %>% str_replace(\",\", \".\") %>% as.numeric()) %>% 
+  apply(function(x){
+    x[1]+(((x[2]*60)+(x[3]))/3600)
+  }, MARGIN =  1)
+}
+```"

@@ -1,0 +1,4 @@
+"0","```r
+url <- \"http://siam.imida.es/apex/f?p=101:39:5267927739015372::NO::P39_MOSTRAR_DATOS:0\"
+web <- read_html(url, as.data.frame=T, stringsAsFactors = TRUE)
+```"

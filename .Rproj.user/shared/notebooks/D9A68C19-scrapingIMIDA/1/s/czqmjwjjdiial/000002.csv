@@ -1,0 +1,6 @@
+"0","```r
+
+read_html(\"http://siam.imida.es/apex/f?p=101:1000:3404172010822813::NO:::\",
+          as.data.frame=T, stringsAsFactors = TRUE) %>% 
+            html_nodes(\"option\") %>% xml_text() %>% tail(length(.)-1) %>% str_sub(1,4) -> IDs
+```"

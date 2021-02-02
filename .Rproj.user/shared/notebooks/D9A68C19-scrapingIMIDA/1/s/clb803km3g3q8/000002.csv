@@ -1,0 +1,18 @@
+"0","```r
+web %>% 
+  html_nodes(\"#P39_CULTIVO_VARIEDAD\") %>% .[[1]] %>% html_nodes(\"option\") %>%
+  xml_cdata %>% tail(length(.)-1) %>% lapply(function(x){
+    return(xml_attr(x, \"value\") %>% as.character() )}) %>% unlist() -> option_values
+
+option_values %>% lapply(function(x){
+  return(
+          list(
+              cultivo  = str_sub(x, -9, -5),
+              variedad = str_sub(x, -3, -1)
+              )
+         )
+}) -> cultivos_variedad
+
+
+cultivosIMIDA <-setNames(cultivos_variedad, CULTIVOS.n)
+```"

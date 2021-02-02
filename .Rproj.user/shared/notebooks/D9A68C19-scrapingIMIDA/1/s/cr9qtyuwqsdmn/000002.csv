@@ -1,0 +1,36 @@
+"0","```r
+if(T){
+  
+  KCs <- list()
+  for(i in 1:length(cultivosIMIDA)){
+    KCs[[i]] <- list()
+    cultivosIMIDA[[i]]$URLs <- list()
+    CULTIVO  = cultivosIMIDA[[i]]$cultivo
+    VARIEDAD = cultivosIMIDA[[i]]$variedad
+    
+    for (j in 1:length(cultivosIMIDA[[i]]$estaciones)){
+          ESTACION = cultivosIMIDA[[i]]$estaciones[j]
+
+          # build URL
+          paste(
+            paste(
+              paste(\"http://siam.imida.es/apex/f?p=101:333:5267927739015372::::CULTIVO,VARIEDAD,ESTACION:\",
+              CULTIVO, sep=\"\"),
+            VARIEDAD, sep=\",\"),
+          ESTACION,sep=\",\") -> url
+          print(url)
+          # insert each url (one for each station) at the list of URLs of each crop
+          cultivosIMIDA[[i]]$URLs[j] = url
+          
+          # scrap Kc table with the constructed URL
+          url %>% read_html(as.data.frame=T, stringsAsFactors = F) %>% 
+           html_node(\"tr td\") %>% 
+              html_nodes(\"table\") %>% .[[5]] %>%
+                html_table(fill = T)-> KCs[[i]][[j]]
+     #Sys.sleep(runif(1,min=1,max=1)) # max = 3
+    }
+  }
+  #Sys.sleep(runif(1,min=1,max=3))
+
+}
+```"

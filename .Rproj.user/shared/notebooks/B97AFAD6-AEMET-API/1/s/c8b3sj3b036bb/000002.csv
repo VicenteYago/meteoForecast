@@ -1,0 +1,6 @@
+"0","```r
+source(\"./notebooks/custom_libs/aemet_API.R\")
+codigo <- \"30029\"
+pred <- getPrediccionAEMET(\"03122\")
+pred
+```"

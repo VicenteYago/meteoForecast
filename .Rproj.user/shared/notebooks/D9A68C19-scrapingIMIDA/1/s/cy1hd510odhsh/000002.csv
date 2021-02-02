@@ -1,0 +1,5 @@
+"0","```r
+library(leaflet)
+m = leaflet(estaciones.info) %>%  addProviderTiles(providers$Esri.WorldImagery)
+m %>% addMarkers(popup = ~as.character(Altitud), label = ~ Nombre)
+```"
