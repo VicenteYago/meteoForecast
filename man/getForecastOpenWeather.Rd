@@ -4,14 +4,14 @@
 \alias{getForecastOpenWeather}
 \title{Get 48 h forecast from OpenWeather (https://openweathermap.org/).}
 \usage{
-getForecastOpenWeather(lat, long, KEY = key.openWeather)
+getForecastOpenWeather(lat, long, KEY)
 }
 \arguments{
 \item{lat}{character latitude}
 
 \item{long}{character longitude}
 
-\item{key}{character API key. Users must register to obtain it. See \href{https://openweathermap.org/appid}{link}.}
+\item{KEY}{character API key. Users must register to obtain it. See \href{https://openweathermap.org/appid}{link}.}
 }
 \description{
 The forecast are retrived from Open Weather One Call API \href{https://openweathermap.org/api/one-call-api}{link}.
@@ -21,5 +21,8 @@ The forecast are retrived from Open Weather One Call API \href{https://openweath
  In not all locations OpenWeather provides rain data, in this case the dataframe contains NA for the precipitation column.
 }
 \examples{
-getForecastOpenWeather(lat = "37.9929600", long = "-1.5366100")
+\dontrun{
+key.ow <- "OW-API-KEY"
+getForecastOpenWeather(lat = "37.9929600", long = "-1.5366100", KEY = key.ow)
+}
 }

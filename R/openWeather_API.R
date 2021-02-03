@@ -7,11 +7,10 @@
 
 #' @docType package
 #' @name meteoForecast
+#' @importFrom magrittr %>%
 NULL
 
 
-
-key.openWeather <- "eed0d74db8ec47674d4ab0286e832f9b"
 
 openWeatherJSONtodf <- function(content.JSON, variable) {
   data.frame(date  = lapply(content.JSON$hourly, "[[", "dt") %>% unlist() %>% as.POSIXct(origin  = "1970-01-01"),
@@ -32,11 +31,15 @@ openWeatherJSONtodf <- function(content.JSON, variable) {
 #'
 #' @param  lat character latitude
 #' @param  long character longitude
-#' @param  key character API key. Users must register to obtain it. See \href{https://openweathermap.org/appid}{link}.
+#' @param  KEY character API key. Users must register to obtain it. See \href{https://openweathermap.org/appid}{link}.
 #'@examples
-#'getForecastOpenWeather(lat = "37.9929600", long = "-1.5366100")
+#' \dontrun{
+#' key.ow <- "OW-API-KEY"
+#' getForecastOpenWeather(lat = "37.9929600", long = "-1.5366100", KEY = key.ow)
+#' }
+
 #' @export
-getForecastOpenWeather <- function(lat, long, KEY = key.openWeather){
+getForecastOpenWeather <- function(lat, long, KEY){
 
   if (missing(lat)) {
     stop("argument 'lat' is missing, with no default")
@@ -46,13 +49,22 @@ getForecastOpenWeather <- function(lat, long, KEY = key.openWeather){
     stop("argument 'long' is missing, with no default")
   }
 
-  if (is.numeric(lat)) {
+  if (missing(KEY)) {
+    stop("argument 'KEY' is missing, with no default")
+  }
+
+  if (!is.character(lat)) {
     stop("argument 'lat' must be a character")
   }
 
-  if (is.numeric(long)) {
+  if (!is.character(long)) {
     stop("argument 'long' must be a character")
   }
+
+  if (!is.character(KEY)) {
+    stop("argument 'KEY' must be a character")
+  }
+
 
   paste0(
     paste0(

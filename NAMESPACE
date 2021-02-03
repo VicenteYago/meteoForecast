@@ -2,3 +2,4 @@
 
 export(getForecastAEMET)
 export(getForecastOpenWeather)
+importFrom(magrittr,"%>%")

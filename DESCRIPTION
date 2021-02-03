@@ -11,14 +11,10 @@ Encoding: UTF-8
 LazyData: true
 Imports:
   tidyverse,
-  tsibble,
-  feasts,
   httr,
   xml2,
-  magrittr,
-  Evapotranspiration,
-  weathermetrics,
   dplyr,
+  RJSONIO,
   lubridate
 Depends:
   magrittr

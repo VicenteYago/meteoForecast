@@ -1,8 +1,3 @@
-#library(httr)
-#library(tidyverse)
-#library(lubridate)
-
-KEY <- "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb3NldmljZW50ZS55YWdvQHVtLmVzIiwianRpIjoiNTdhNDgwMzQtNDYxNy00OWZmLWFiMjgtZjZlMjBjZjliOGUwIiwiaXNzIjoiQUVNRVQiLCJpYXQiOjE1ODcwMjY5NzQsInVzZXJJZCI6IjU3YTQ4MDM0LTQ2MTctNDlmZi1hYjI4LWY2ZTIwY2Y5YjhlMCIsInJvbGUiOiIifQ.huWKTwOwU-XCMv4DwHJCzNs8zQn8L2cO834ltpiUymM"
 
 aemetJSONtodf <- function(aemet.JSON, variable){
   df.glob <- data.frame()
@@ -41,33 +36,43 @@ aemetJSONtodf <- function(aemet.JSON, variable){
 #'
 #'@param  codigo character with Municipality Code. See \href{https://www.ine.es/daco/daco42/codmun/codmunmapa.htm}{link}.
 #'
-#'@param key character API key. Users must register to obtain it. See \href{https://opendata.aemet.es/centrodedescargas/altaUsuario?}{link}.
+#'@param KEY character API key. Users must register to obtain it. See \href{https://opendata.aemet.es/centrodedescargas/altaUsuario?}{link}.
 #'@examples
-#'getForecastAEMET(codigo = "03140") # Villena, Alicante, Spain
+#' \dontrun{
+#' key.aemet <- "AEMET-API-KEY"
+#'getForecastAEMET(codigo = "03140", KEY = key.aemet)  # Villena, Alicante, Spain
+#' }
 #' @export
-getForecastAEMET<-function(codigo, key = KEY){
+getForecastAEMET<-function(codigo, KEY){
 
  if (missing(codigo)) {
     stop("argument 'codigo' is missing, with no default")
  }
 
- if (is.numeric(codigo)) {
+  if (missing(KEY)) {
+    stop("argument 'KEY' is missing, with no default")
+  }
+
+ if (!is.character(codigo)) {
    stop("argument 'codigo' must be a character")
  }
 
 
+  if (!is.character(KEY)) {
+    stop("argument 'KEY' must be a character")
+  }
   # Returns link to json data
   DIR <- paste0("https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/", codigo)
   r<-httr::GET(DIR,
                httr::add_headers(content_type = "application/json"),
-               httr::add_headers('api_key' = key))
+               httr::add_headers('api_key' = KEY))
   r$status_code
   content <- httr::content(r)
 
   # Returns raw json data
   r <-httr::GET(content$datos,
                 httr::add_headers(content_type = "application/json"),
-                httr::add_headers('api_key' = key))
+                httr::add_headers('api_key' = KEY))
   r$status_code
   content <- httr::content(r)
 
