@@ -2,6 +2,7 @@
 A R package for obtain weather forecasts from well-known sources.
 
 ```{r}
+install.packages("devtools")
 library(devtools)
 install_github("VicenteYago/meteoForecast")
 library("meteoForecast")
