@@ -1,5 +1,0 @@
-"0","```r
-
-ggplot(res, aes(x = date)) + 
-  geom_line(aes(y = viento)) +ggtitle(\"Prediccion viento 48 h AEMET\")+ labs( y = \"m*s^-1\")
-```"

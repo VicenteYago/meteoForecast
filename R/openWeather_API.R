@@ -112,7 +112,8 @@ getForecastOpenWeather <- function(lat, long, KEY){
 #' key.ow <- "OW-API-KEY"
 #' getForecastOpenWeather(lat = "37.9929600", long = "-1.5366100", KEY = key.ow)
 #' }
-
+#'
+#' @export
 getCurrentOpenWeather <- function(lat, long, KEY){
 
   if (missing(lat)) {
@@ -165,7 +166,7 @@ getCurrentOpenWeather <- function(lat, long, KEY){
              windDegree = windDegree,
              pres = pressure,
              clouds = clouds,
-             condID = conditionsId
+             condID = conditionsId,
              conditionsDesc = conditionsDesc
              )
 }

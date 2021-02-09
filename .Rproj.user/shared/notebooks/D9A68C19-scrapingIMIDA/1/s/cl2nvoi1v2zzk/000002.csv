@@ -1,3 +1,0 @@
-"0","```r
-estaciones.info <- paste(route.proc, \"estaciones.info.rds\", sep=\"\") %>%  readRDS()
-```"

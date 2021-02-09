@@ -1,7 +1,0 @@
-"0","```r
-#STOP SERVER
-selServ$stop()
-
-#START SERVER
-selServ <- selenium(verbose = T)
-```"
