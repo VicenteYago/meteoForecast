@@ -1,8 +1,0 @@
-"0","```r
-if(F){
-##----------------------NO EJECUTAR ESTA SENTENCIA-----------------------##
-saveRDS(cIMIDA,  paste(route.proc, \"cultivosIMIDA.rds\", sep=\"\"))
-saveRDS(KCs,  paste(route.proc, \"KCs.rds\", sep=\"\"))
-saveRDS(estaciones,  paste(route.proc, \"estaciones.info.rds\", sep=\"\"))
-}
-```"

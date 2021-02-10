@@ -1,6 +1,0 @@
-"0","```r
-if(F){
-##----------------------NUNCA EJECUTAR ESTA SENTENCIA-----------------------##
-saveRDS(estaciones.info,  paste(route.proc, \"estaciones.info.rds\", sep=\"\"))
-}
-```"

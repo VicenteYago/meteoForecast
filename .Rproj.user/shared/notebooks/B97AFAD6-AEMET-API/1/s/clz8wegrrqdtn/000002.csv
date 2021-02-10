@@ -1,6 +1,0 @@
-"0","```r
-ggplot(data = df.glob, aes(x = hour, y = value)) + 
-  geom_point() +
-  geom_line() + 
-  labs(x = \"Time\", y = \"ºC\") + ggtitle(\"Predicción temperatura AEMET 48 horas\")
-```"

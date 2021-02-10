@@ -1,7 +1,0 @@
-"0","```r
-web %>% 
-  html_nodes(\"option\") %>% html_text %>% .[2:length(.)] -> texts
-
-CULTIVOS.n<-texts[1:43]
-SUELOS.n<-texts[46:51]
-```"
