@@ -9,8 +9,9 @@ library("meteoForecast")
 ```
 
 ### AEMET
+#### 48 hour forecast
+
 ```{r}
-# 48 hour forecast
 key.aemet <- "AEMET-API-KEY"
 aemet.df <- getForecastAEMET(codigo = "03140", KEY = key.aemet)
 head(aemet.df) 
@@ -23,8 +24,8 @@ head(aemet.df)
 ```
 
 ### OPENWEATHER
+#### 48 hour forecast
 ```{r}
-# 48 hour forecast
 key.ow <- "OW-API-KEY"
 ow.df <-getForecastOpenWeather(lat = "37.9929600", long = "-1.5366100", KEY = key.ow)
 head(ow.df)
@@ -34,15 +35,11 @@ head(ow.df)
 3  2021-02-03 12:00:00 15.73 49   NA   1.54
 4  2021-02-03 13:00:00 17.24 40   NA   1.49
 5  2021-02-03 14:00:00 18.18 36   NA   1.61
-
-#  current weather
+```
+####  current weather
+```{r}
 getCurrentOpenWeather(lat = "37.9929600", long = "-1.5366100". KEY =  key.ow)
 
                  date  temp HR windSpeed windDegree pres clouds condID conditionsDesc
 1 2021-04-06 13:43:11 25.25 41      0.51        170 1012      0    800      clear sky
-
-
-
-
-
 ```
