@@ -30,6 +30,14 @@ head(ow.df)
 4  2021-02-03 13:00:00 17.24 40   NA   1.49
 5  2021-02-03 14:00:00 18.18 36   NA   1.61
 
+# OPENWEATHER current weather
+getCurrentOpenWeather(lat = "37.9929600", long = "-1.5366100". KEY =  key.ow)
+
+                 date  temp HR windSpeed windDegree pres clouds condID conditionsDesc
+1 2021-04-06 13:43:11 25.25 41      0.51        170 1012      0    800      clear sky
+
+
+
 
 
 ```
