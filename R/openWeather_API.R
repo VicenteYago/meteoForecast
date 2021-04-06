@@ -66,14 +66,11 @@ getForecastOpenWeather <- function(lat, long, KEY){
   }
 
 
-  paste0(
-    paste0(
-      paste0("lat=", lat), "&lon="), long) -> coords
 
-  paste0(
-    paste0(
-      paste0("https://api.openweathermap.org/data/2.5/onecall?", coords),
-      "&exclude=current,minutely,daily&appid="), KEY) -> DIR
+  paste0("lat=", lat, "&lon=", long) -> coords
+
+  paste0("https://api.openweathermap.org/data/2.5/onecall?", coords,
+         "&exclude=current,minutely,daily&appid=", KEY) -> DIR
 
   r<-httr::GET(DIR,
          httr::add_headers(content_type = "application/json"),
