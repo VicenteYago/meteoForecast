@@ -6,8 +6,10 @@ install.packages("devtools")
 library(devtools)
 install_github("VicenteYago/meteoForecast")
 library("meteoForecast")
+```
 
-#--------------- AEMET
+### AEMET
+```{r}
 # 48 hour forecast
 key.aemet <- "AEMET-API-KEY"
 aemet.df <- getForecastAEMET(codigo = "03140", KEY = key.aemet)
@@ -18,8 +20,10 @@ head(aemet.df)
 3  2021-02-03 03:00:00   11 74    0 3.8888889
 4  2021-02-03 04:00:00   11 75    0 3.8888889
 5  2021-02-03 05:00:00   10 75    0 4.1666667
+```
 
-#--------------- OPENWEATHER
+### OPENWEATHER
+```{r}
 # 48 hour forecast
 key.ow <- "OW-API-KEY"
 ow.df <-getForecastOpenWeather(lat = "37.9929600", long = "-1.5366100", KEY = key.ow)
