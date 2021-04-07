@@ -47,6 +47,7 @@ getCurrentOpenWeather(lat = "37.9929600", long = "-1.5366100", KEY = key.ow)
 ### WEATHERBIT
 #### 48 hour forecast
 ```{r}
+key.wb <- "WB-API-KEY"
 wb.df <- getWeatherBit(lat = "37.9929600", long = "-1.5366100", KEY = key.wb)
 str(wd.df)
 
