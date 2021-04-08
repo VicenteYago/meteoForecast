@@ -3,4 +3,5 @@
 export(getCurrentOpenWeather)
 export(getForecastAEMET)
 export(getForecastOpenWeather)
+export(getForecastWeatherBit)
 importFrom(magrittr,"%>%")

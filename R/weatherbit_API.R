@@ -20,8 +20,26 @@ weathebitJSONtodf <- function(content){
              df[,!names(df) %in% c("timestamp_utc", "timestamp_local")])
 }
 
-
-getWeatherBit <- function(lat, long, KEY) {
+#' Get 48 h forecast from WeatherBit (https://www.weatherbit.io/) .
+#'
+#' The forecast are retrived from \href{https://www.weatherbit.io/api/weather-forecast-120-hour}{WeatherBit 48 hour forecast}.
+#'
+#' \code{getCurrentOpenWeather} returns a dataframe with date, temperature (Celsius scale), relative humidity (RH)(\%),
+#'  windSpeed (m/s), windDegree, pressure, clouds, and conditionsID and description \href{https://openweathermap.org/weather-conditions#Weather-Condition-Codes-2}{link}
+#'
+#'  In not all locations OpenWeather provides rain data, in this case the dataframe contains NA for the precipitation column.
+#'
+#' @param  lat character latitude
+#' @param  long character longitude
+#' @param  KEY character API key. Users must register to obtain it. See \href{weatherbit.io/account/create}{link}.
+#'@examples
+#' \dontrun{
+#' key.wb <- "WB-API-KEY"
+#' getForecastWeatherBit(lat = "37.9929600", long = "-1.5366100", KEY = key.wb)
+#' }
+#'
+#' @export
+getForecastWeatherBit <- function(lat, long, KEY) {
 
   if (missing(lat)) {
     stop("argument 'lat' is missing, with no default")
