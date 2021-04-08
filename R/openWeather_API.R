@@ -101,6 +101,8 @@ getForecastOpenWeather <- function(lat, long, KEY){
 #'
 #'  In not all locations OpenWeather provides rain data, in this case the dataframe contains NA for the precipitation column.
 #'
+#'  The `date` variable is given in local timezone.
+#'
 #' @param  lat character latitude
 #' @param  long character longitude
 #' @param  KEY character API key. Users must register to obtain it. See \href{https://openweathermap.org/appid}{link}.

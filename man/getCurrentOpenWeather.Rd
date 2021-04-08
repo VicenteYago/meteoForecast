@@ -21,6 +21,8 @@ The forecast are retrived from Open Weather One Call API \href{https://openweath
  windSpeed (m/s), windDegree, pressure, clouds, and conditionsID and description \href{https://openweathermap.org/weather-conditions#Weather-Condition-Codes-2}{link}
 
  In not all locations OpenWeather provides rain data, in this case the dataframe contains NA for the precipitation column.
+
+ The `date` variable is given in local timezone.
 }
 \examples{
 \dontrun{
