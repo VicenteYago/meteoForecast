@@ -73,6 +73,9 @@ getForecastWeatherBit <- function(lat, long, KEY) {
 
   r$status_code
   content <- httr::content(r)
-
-  return(weathebitJSONtodf(content))
+  df = weathebitJSONtodf(content)
+  df = df[,c("timestamp_local", "temp", "rh", "wind_spd", "solar_rad")]
+  colnames(df) <- c("dates", "termo", "higro", "anemo", "pirano")
+  return(df)
 }
+

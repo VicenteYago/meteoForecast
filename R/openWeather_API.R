@@ -66,11 +66,14 @@ getForecastOpenWeather <- function(lat, long, KEY){
   }
 
 
+  paste0(
+    paste0(
+      paste0("lat=", lat), "&lon="), long) -> coords
 
-  paste0("lat=", lat, "&lon=", long) -> coords
-
-  paste0("https://api.openweathermap.org/data/2.5/onecall?", coords,
-         "&exclude=current,minutely,daily&appid=", KEY) -> DIR
+  paste0(
+    paste0(
+      paste0("https://api.openweathermap.org/data/2.5/onecall?", coords),
+      "&exclude=current,minutely,daily&appid="), KEY) -> DIR
 
   r<-httr::GET(DIR,
          httr::add_headers(content_type = "application/json"),
@@ -100,8 +103,6 @@ getForecastOpenWeather <- function(lat, long, KEY){
 #'  windSpeed (m/s), windDegree, pressure, clouds, and conditionsID and description \href{https://openweathermap.org/weather-conditions#Weather-Condition-Codes-2}{link}
 #'
 #'  In not all locations OpenWeather provides rain data, in this case the dataframe contains NA for the precipitation column.
-#'
-#'  The `date` variable is given in local timezone.
 #'
 #' @param  lat character latitude
 #' @param  long character longitude
